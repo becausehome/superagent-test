@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>倒计时</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1e293b, #0b1020 60%);
+    color: #e5e7eb;
+  }
+  .card {
+    width: min(92vw, 640px); padding: 40px 32px; text-align: center;
+    background: rgba(15, 23, 42, .72);
+    border: 1px solid rgba(148, 163, 184, .18);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+    backdrop-filter: blur(8px);
+  }
+  h1 { margin: 0 0 8px; font-size: 20px; font-weight: 600; letter-spacing: .12em; color: #94a3b8; }
+  .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 28px 0 8px; }
+  .unit { padding: 14px 6px; background: rgba(30, 41, 59, .65); border-radius: 14px; }
+  .unit b {
+    display: block; font-size: clamp(28px, 8vw, 52px); line-height: 1.1;
+    font-variant-numeric: tabular-nums; font-weight: 700; color: #f8fafc;
+  }
+  .unit span { display: block; margin-top: 6px; font-size: 12px; color: #94a3b8; letter-spacing: .2em; }
+  .status { min-height: 20px; margin: 12px 0 24px; font-size: 14px; color: #94a3b8; }
+  .status.done { color: #fbbf24; }
+  form { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  input, button {
+    font: inherit; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, .3);
+    background: rgba(15, 23, 42, .8); color: #e5e7eb;
+  }
+  input:focus-visible, button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+  button { cursor: pointer; background: #2563eb; border-color: #2563eb; font-weight: 600; }
+  button:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>倒计时</h1>
+  <div class="clock" aria-live="polite">
+    <div class="unit"><b id="days">0</b><span>天</span></div>
+    <div class="unit"><b id="hours">0</b><span>时</span></div>
+    <div class="unit"><b id="minutes">0</b><span>分</span></div>
+    <div class="unit"><b id="seconds">0</b><span>秒</span></div>
+  </div>
+  <p class="status" id="status"></p>
+  <form id="form">
+    <input type="datetime-local" id="target" required aria-label="目标时间">
+    <button type="submit">开始</button>
+  </form>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const KEY = "countdown-target";
+  const pad = (n) => String(n).padStart(2, "0");
+
+  const toLocalInput = (date) => {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+  };
+
+  let target = new Date();
+
+  function restore() {
+    let saved = null;
+    try { saved = Number(localStorage.getItem(KEY)); } catch {}
+    target = saved && Number.isFinite(saved) ? new Date(saved) : new Date(Date.now() + 86400000);
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, String(target.getTime())); } catch {}
+  }
+
+  function render() {
+    let left = target.getTime() - Date.now();
+    const done = left <= 0;
+    if (done) left = 0;
+
+    const total = Math.floor(left / 1000);
+    $("days").textContent = Math.floor(total / 86400);
+    $("hours").textContent = pad(Math.floor(total / 3600) % 24);
+    $("minutes").textContent = pad(Math.floor(total / 60) % 60);
+    $("seconds").textContent = pad(total % 60);
+
+    const status = $("status");
+    status.classList.toggle("done", done);
+    status.textContent = done ? "已结束" : "目标：" + target.toLocaleString("zh-CN");
+  }
+
+  function apply(date) {
+    target = date;
+    save();
+    $("target").value = toLocalInput(date);
+    render();
+  }
+
+  restore();
+  $("target").value = toLocalInput(target);
+  $("form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = $("target").value;
+    if (!value) return;
+    const next = new Date(value);
+    if (Number.isNaN(next.getTime())) return;
+    apply(next);
+  });
+
+  render();
+  setInterval(render, 1000);
+</script>
+</body>
+</html>
