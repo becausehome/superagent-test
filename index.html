@@ -22,6 +22,7 @@
     backdrop-filter: blur(8px);
   }
   h1 { margin: 0 0 8px; font-size: 20px; font-weight: 600; letter-spacing: .12em; color: #94a3b8; }
+  .tagline { margin: 0; font-size: 13px; font-weight: 500; letter-spacing: .3em; color: #64748b; }
   .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 28px 0 8px; }
   .unit { padding: 14px 6px; background: rgba(30, 41, 59, .65); border-radius: 14px; }
   .unit b {
@@ -45,6 +46,7 @@
 <body>
 <main class="card">
   <h1>倒计时</h1>
+  <h2 class="tagline">叫倒计时</h2>
   <div class="clock" aria-live="polite">
     <div class="unit"><b id="days">0</b><span>天</span></div>
     <div class="unit"><b id="hours">0</b><span>时</span></div>
